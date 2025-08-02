@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CAPTCHA Boss Fight</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Courier New', monospace;
+      background: linear-gradient(45deg, #0f0f23, #1a1a2e, #16213e);
+      background-size: 400% 400%;
+      animation: gradientShift 8s ease infinite;
+      color: #fff;
+      text-align: center;
+      padding: 1rem;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    @keyframes gradientShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    .game-container {
+      max-width: 1000px;
+      margin: auto;
+      position: relative;
+    }
+
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+      background: rgba(0,0,0,0.5);
+      padding: 1rem;
+      border-radius: 10px;
+      backdrop-filter: blur(10px);
+    }
+
+    .stat {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: #aaa;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #00ff88;
+    }
+
+    .wpm-stat {
+      color: #ffaa00;
+    }
+
+    .accuracy-stat {
+      color: #ff6666;
+    }
+
+    .boss {
+      margin-bottom: 2rem;
+      position: relative;
+    }
+
+    .boss-face {
+      font-size: 120px;
+      transition: all 0.3s ease;
+      text-shadow: 0 0 20px #ff0000;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .boss-face:hover {
+      transform: scale(1.1);
+      text-shadow: 0 0 30px #ff0000;
+    }
+
+    .boss-face.damaged {
+      animation: shake 0.5s ease-in-out;
+      filter: hue-rotate(90deg);
+    }
+
+    .boss-face.angry {
+      animation: pulse 0.5s ease-in-out;
+      color: #ff0000;
+      transform: scale(1.2);
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      75% { transform: translateX(10px); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.3); }
+    }
+
+    .taunt {
+      font-style: italic;
+      margin: 1rem 0;
+      color: #ff6666;
+      font-size: 1.2rem;
+      min-height: 30px;
+      animation: fadeInOut 0.5s ease-in-out;
+    }
+
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: translateY(-10px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .health-container {
+      margin: 1rem 0;
+    }
+
+    .health-bar {
+      background: #333;
+      width: 100%;
+      height: 25px;
+      margin: 10px auto;
+      border: 3px solid #555;
+      border-radius: 15px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+    }
+
+    .health {
+      background: linear-gradient(90deg, #ff0000, #ff6600, #ffaa00);
+      width: 100%;
+      height: 100%;
+      transition: width 0.5s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .health::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+      animation: healthGlow 2s linear infinite;
+    }
+
+    @keyframes healthGlow {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
+
+    .health-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-weight: bold;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+      z-index: 10;
+    }
+
+    .captcha {
+      background: rgba(0,0,0,0.7);
+      padding: 2rem;
+      border-radius: 15px;
+      margin: 2rem 0;
+      backdrop-filter: blur(10px);
+      border: 2px solid #444;
+    }
+
+    .captcha-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .captcha-type {
+      padding: 5px 10px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      background: #00ff00;
+      color: #000;
+    }
+
+    .captcha-display {
+      background: #f8f8f8;
+      color: #333;
+      padding: 2rem;
+      border-radius: 10px;
+      margin: 1rem 0;
+      font-family: 'Times New Roman', serif;
+      font-size: 1.8rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      border: 3px solid #ddd;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .captcha-display::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 2px,
+          rgba(0,0,0,0.1) 2px,
+          rgba(0,0,0,0.1) 4px
+        );
+      pointer-events: none;
+    }
+
+    .distorted-text {
+      position: relative;
+      display: inline-block;
+    }
+
+    .char {
+      display: inline-block;
+      position: relative;
+      animation: charFloat 3s ease-in-out infinite;
+      margin: 0 1px;
+    }
+
+    .char:nth-child(even) {
+      animation-delay: 0.5s;
+      transform: rotate(-1deg);
+    }
+
+    .char:nth-child(odd) {
+      animation-delay: 1s;
+      transform: rotate(1deg);
+    }
+
+    @keyframes charFloat {
+      0%, 100% { transform: translateY(0px) rotate(var(--char-rotate, 0deg)); }
+      50% { transform: translateY(-2px) rotate(var(--char-rotate, 0deg)); }
+    }
+
+    .typing-area {
+      margin: 1rem 0;
+    }
+
+    .typing-input {
+      width: 100%;
+      max-width: 600px;
+      padding: 1rem;
+      font-size: 1.2rem;
+      font-family: 'Courier New', monospace;
+      background: rgba(255,255,255,0.1);
+      border: 2px solid #555;
+      border-radius: 10px;
+      color: #fff;
+      text-align: center;
+      transition: all 0.3s ease;
+      letter-spacing: 1px;
+    }
+
+    .typing-input:focus {
+      outline: none;
+      border-color: #00ff88;
+      box-shadow: 0 0 20px rgba(0,255,136,0.3);
+      background: rgba(255,255,255,0.15);
+    }
+
+    .typing-feedback {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin: 1rem 0;
+      flex-wrap: wrap;
+    }
+
+    .feedback-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: rgba(0,0,0,0.3);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+    }
+
+    .feedback-label {
+      font-size: 0.8rem;
+      color: #aaa;
+    }
+
+    .feedback-value {
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    .wpm-value { color: #ffaa00; }
+    .accuracy-value { color: #ff6666; }
+    .errors-value { color: #ff0000; }
+
+    .timer-container {
+      margin: 1rem 0;
+    }
+
+    .timer-bar {
+      width: 100%;
+      height: 12px;
+      background: #333;
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .timer-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #00ff88, #ffaa00, #ff0000);
+      width: 100%;
+      transition: width 0.1s linear;
+    }
+
+    .timer-text {
+      margin-top: 0.5rem;
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+    .typing-progress {
+      background: rgba(0,0,0,0.5);
+      padding: 1rem;
+      border-radius: 10px;
+      margin: 1rem 0;
+    }
+
+    .progress-text {
+      font-family: 'Courier New', monospace;
+      font-size: 1.1rem;
+      line-height: 1.5;
+      text-align: left;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .char-correct {
+      background: rgba(0,255,0,0.3);
+      color: #00ff00;
+    }
+
+    .char-incorrect {
+      background: rgba(255,0,0,0.3);
+      color: #ff0000;
+    }
+
+    .char-current {
+      background: rgba(255,255,0,0.5);
+      color: #000;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0.3; }
+    }
+
+    .damage-popup {
+      position: absolute;
+      font-size: 2rem;
+      font-weight: bold;
+      color: #ff0000;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+      animation: damageFloat 1s ease-out forwards;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    @keyframes damageFloat {
+      0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(-50px) scale(1.5);
+      }
+    }
+
+    .submit-btn {
+      padding: 1rem 2rem;
+      font-size: 1.2rem;
+      background: linear-gradient(45deg, #00ff88, #00cc66);
+      border: none;
+      border-radius: 10px;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 1rem;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+    }
+
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,255,136,0.4);
+      background: linear-gradient(45deg, #00cc66, #00ff88);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .refresh-btn {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid #555;
+      border-radius: 5px;
+      color: #fff;
+      cursor: pointer;
+      margin: 0.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .refresh-btn:hover {
+      background: rgba(255,255,255,0.2);
+      border-color: #00ff88;
+    }
+
+    .game-over, .victory {
+      background: rgba(0,0,0,0.9);
+      padding: 3rem;
+      border-radius: 20px;
+      margin: 2rem 0;
+      backdrop-filter: blur(15px);
+      border: 3px solid;
+      animation: slideIn 0.5s ease-out;
+    }
+
+    .game-over {
+      border-color: #ff0000;
+      color: #ff6666;
+    }
+
+    .victory {
+      border-color: #00ff88;
+      color: #00ff88;
+    }
+
+    @keyframes slideIn {
+      0% {
+        opacity: 0;
+        transform: translateY(-50px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .final-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin: 1rem 0;
+      text-align: center;
+    }
+
+    .final-stat {
+      background: rgba(255,255,255,0.1);
+      padding: 1rem;
+      border-radius: 8px;
+    }
+
+    .restart-btn {
+      padding: 1rem 2rem;
+      font-size: 1.2rem;
+      background: linear-gradient(45deg, #ff6600, #ff0000);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+    }
+
+    .restart-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255,102,0,0.4);
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: #00ff88;
+      border-radius: 50%;
+      animation: particleFloat 2s ease-out forwards;
+    }
+
+    @keyframes particleFloat {
+      0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(-100px) scale(0);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .stats-bar {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .boss-face {
+        font-size: 80px;
+      }
+      
+      .captcha-display {
+        font-size: 1.4rem;
+        padding: 1rem;
+      }
+      
+      .typing-input {
+        font-size: 1rem;
+      }
+
+      .typing-feedback {
+        gap: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <h1>⌨️CAPTCHA BOSS FIGHT</h1>
+    
+    <div class="stats-bar">
+      <div class="stat">
+        <div class="stat-label">Score</div>
+        <div class="stat-value" id="score">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Hits</div>
+        <div class="stat-value" id="hits">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">WPM</div>
+        <div class="stat-value wpm-stat" id="current-wpm">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Accuracy</div>
+        <div class="stat-value accuracy-stat" id="current-accuracy">100%</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Best WPM</div>
+        <div class="stat-value" id="best-wpm">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Time</div>
+        <div class="stat-value" id="game-time">00:00</div>
+      </div>
+    </div>
+
+    <div class="boss">
+      <div class="boss-face" id="boss-face" onclick="clickBoss()">🤖</div>
+      <div class="taunt" id="taunt">"Your typing speed is no match for me!"</div>
+      <div class="health-container">
+        <div class="health-bar">
+          <div id="health" class="health"></div>
+          <div class="health-text" id="health-text">100%</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="captcha">
+      <div class="captcha-info">
+        <div>
+          <span id="captcha-type-badge" class="captcha-type">BASIC CAPTCHA</span>
+        </div>
+        <div class="timer-container">
+          <div class="timer-text" id="timer-text">Time: 45s</div>
+          <div class="timer-bar">
+            <div class="timer-fill" id="timer-fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="captcha-display" id="captcha-display">
+        <div class="distorted-text" id="distorted-text">
+          <!-- CAPTCHA text will be generated here -->
+        </div>
+      </div>
+
+      <div class="typing-area">
+        <input type="text" class="typing-input" id="typing-input" placeholder="Type the CAPTCHA text here..." autocomplete="off" spellcheck="false" />
+      </div>
+
+      <div class="typing-progress">
+        <div class="progress-text" id="progress-text">
+          <!-- Real-time typing progress will show here -->
+        </div>
+      </div>
+
+      <div class="typing-feedback">
+        <div class="feedback-item">
+          <div class="feedback-label">Current WPM</div>
+          <div class="feedback-value wpm-value" id="live-wpm">0</div>
+        </div>
+        <div class="feedback-item">
+          <div class="feedback-label">Accuracy</div>
+          <div class="feedback-value accuracy-value" id="live-accuracy">100%</div>
+        </div>
+        <div class="feedback-item">
+          <div class="feedback-label">Errors</div>
+          <div class="feedback-value errors-value" id="live-errors">0</div>
+        </div>
+      </div>
+
+      <div>
+        <button class="submit-btn" onclick="submitCaptcha()" id="submit-btn">Attack Boss!</button>
+        <button class="refresh-btn" onclick="generateCaptcha()">🔄 New CAPTCHA</button>
+      </div>
+    </div>
+
+    <div id="game-over" class="game-over hidden">
+      <h2>💀 DEFEATED!</h2>
+      <p>The CAPTCHA boss has overwhelmed your typing skills!</p>
+      <div class="final-stats">
+        <div class="final-stat">
+          <div>Final Score</div>
+          <div id="final-score">0</div>
+        </div>
+        <div class="final-stat">
+          <div>Best WPM</div>
+          <div id="final-best-wpm">0</div>
+        </div>
+        <div class="final-stat">
+          <div>Avg Accuracy</div>
+          <div id="final-accuracy">0%</div>
+        </div>
+        <div class="final-stat">
+          <div>Successful Hits</div>
+          <div id="final-hits">0</div>
+        </div>
+      </div>
+      <button class="restart-btn" onclick="restartGame()">Try Again</button>
+    </div>
+
+    <div id="victory" class="victory hidden">
+      <h2>🎉 BOSS DEFEATED!</h2>
+      <p>You've proven your typing mastery and defeated the CAPTCHA boss!</p>
+      <div class="final-stats">
+        <div class="final-stat">
+          <div>Final Score</div>
+          <div id="victory-score">0</div>
+        </div>
+        <div class="final-stat">
+          <div>Peak WPM</div>
+          <div id="victory-best-wpm">0</div>
+        </div>
+        <div class="final-stat">
+          <div>Final Accuracy</div>
+          <div id="victory-accuracy">0%</div>
+        </div>
+        <div class="final-stat">
+          <div>Total Hits</div>
+          <div id="victory-hits">0</div>
+        </div>
+      </div>
+      <button class="restart-btn" onclick="restartGame()">Fight Again</button>
+    </div>
+  </div>
+
+  <div class="particles" id="particles"></div>
+
+  <script>
+    let gameState = {
+      health: 100,
+      score: 0,
+      timeLeft: 45,
+      gameTime: 0,
+      isGameActive: true,
+      currentCaptcha: '',
+      startTime: null,
+      totalTypedChars: 0,
+      totalErrors: 0,
+      bestWPM: 0,
+      successfulHits: 0,
+      totalAccuracy: []
+    };
+
+    const elements = {
+      healthBar: document.getElementById("health"),
+      healthText: document.getElementById("health-text"),
+      tauntEl: document.getElementById("taunt"),
+      captchaDisplay: document.getElementById("captcha-display"),
+      distortedText: document.getElementById("distorted-text"),
+      typingInput: document.getElementById("typing-input"),
+      progressText: document.getElementById("progress-text"),
+      gameOver: document.getElementById("game-over"),
+      victory: document.getElementById("victory"),
+      bossface: document.getElementById("boss-face"),
+      timerFill: document.getElementById("timer-fill"),
+      timerText: document.getElementById("timer-text"),
+      score: document.getElementById("score"),
+      hits: document.getElementById("hits"),
+      gameTime: document.getElementById("game-time"),
+      currentWPM: document.getElementById("current-wpm"),
+      currentAccuracy: document.getElementById("current-accuracy"),
+      bestWPM: document.getElementById("best-wpm"),
+      liveWPM: document.getElementById("live-wpm"),
+      liveAccuracy: document.getElementById("live-accuracy"),
+      liveErrors: document.getElementById("live-errors"),
+      submitBtn: document.getElementById("submit-btn")
+    };
+
+    const taunts = [
+      "Your typing speed is insufficient, human!",
+      "My processors calculate faster than your fingers!",
+      "Error 404: Typing skills not found!",
+      "Buffering... still waiting for your input!",
+      "Is that the best you can type?",
+      "My circuits are getting bored waiting!",
+      "Processing your slow typing patterns...",
+      "Your WPM stands for 'Wasted Per Minute'!",
+      "I expected better from a human!",
+      "Time is running out, slow typer!",
+      "Still Jobless ",
+    ];
+
+    const victoryTaunts = [
+      "Impossible! Recalibrating typing algorithms...",
+      "Error 500: Unexpected human typing efficiency!",
+      "System overload: Human exceeded expected WPM!",
+      "Critical error: My defenses are failing!",
+      "No... this cannot be happening!"
+    ];
+
+    // Basic CAPTCHA components
+    const basicWords = [
+      "cat", "dog", "sun", "moon", "star", "tree", "book", "desk", "lamp", "door",
+      "hand", "foot", "head", "eyes", "nose", "face", "hair", "walk", "run", "jump",
+      "play", "work", "read", "write", "type", "fast", "slow", "big", "small", "hot",
+      "cold", "new", "old", "good", "bad", "nice", "cool", "warm", "light", "dark"
+    ];
+    
+    const capitalWords = [
+      "CAT", "DOG", "SUN", "MOON", "STAR", "TREE", "BOOK", "DESK", "LAMP", "DOOR",
+      "HAND", "FOOT", "HEAD", "EYES", "NOSE", "FACE", "HAIR", "WALK", "RUN", "JUMP",
+      "PLAY", "WORK", "READ", "WRITE", "TYPE", "FAST", "SLOW", "BIG", "SMALL", "HOT"
+    ];
+
+    function generateRandomCaptcha() {
+      const components = [];
+      const numComponents = Math.floor(Math.random() * 3) + 2; // 2-4 components
+      
+      for (let i = 0; i < numComponents; i++) {
+        const componentType = Math.floor(Math.random() * 4);
+        
+        switch (componentType) {
+          case 0: // Random number
+            components.push(Math.floor(Math.random() * 999) + 1);
+            break;
+          case 1: // Lowercase word
+            components.push(basicWords[Math.floor(Math.random() * basicWords.length)]);
+            break;
+          case 2: // Uppercase word
+            components.push(capitalWords[Math.floor(Math.random() * capitalWords.length)]);
+            break;
+          case 3: // Mixed case word
+            const word = basicWords[Math.floor(Math.random() * basicWords.length)];
+            const mixedWord = word.split('').map(char => 
+              Math.random() > 0.5 ? char.toUpperCase() : char.toLowerCase()
+            ).join('');
+            components.push(mixedWord);
+            break;
+        }
+      }
+      
+      return components.join('');
+    }
+
+    let countdownTimer, gameTimeTimer, tauntTimer;
+    let typingStartTime = null;
+
+    function initGame() {
+      gameState = {
+        health: 100,
+        score: 0,
+        timeLeft: 45,
+        gameTime: 0,
+        isGameActive: true,
+        currentCaptcha: '',
+        startTime: null,
+        totalTypedChars: 0,
+        totalErrors: 0,
+        bestWPM: 0,
+        successfulHits: 0,
+        totalAccuracy: []
+      };
+      
+      updateUI();
+      generateCaptcha();
+      startTimers();
+      elements.gameOver.classList.add('hidden');
+      elements.victory.classList.add('hidden');
+      elements.typingInput.disabled = false;
+      elements.submitBtn.disabled = false;
+      elements.typingInput.focus();
+    }
+
+    function generateCaptcha() {
+      if (!gameState.isGameActive) return;
+
+      // Generate random combination of numbers, words, and caps
+      const captchaText = generateRandomCaptcha();
+      gameState.currentCaptcha = captchaText;
+      
+      // Create distorted text display (minimal distortion for basic level)
+      createDistortedText(captchaText);
+      
+      // Reset typing input and progress
+      elements.typingInput.value = '';
+      elements.progressText.textContent = captchaText;
+      updateTypingProgress('');
+      
+      // Reset timing
+      typingStartTime = null;
+      
+      // Reset timer to 45 seconds (generous time for basic level)
+      gameState.timeLeft = 45;
+      startCountdown();
+      elements.typingInput.focus();
+    }
+
+    function createDistortedText(text) {
+      elements.distortedText.innerHTML = '';
+      
+      text.split('').forEach((char, index) => {
+        const span = document.createElement('span');
+        span.className = 'char';
+        span.textContent = char;
+        
+        // Minimal distortion for basic level
+        const rotation = (Math.random() - 0.5) * 4; // Very slight rotation
+        span.style.setProperty('--char-rotate', `${rotation}deg`);
+        span.style.color = `hsl(${Math.random() * 40 + 200}, 60%, ${50 + Math.random() * 20}%)`; // Cooler, more readable colors
+        span.style.fontSize = `${0.98 + Math.random() * 0.04}em`; // Minimal size variation
+        
+        elements.distortedText.appendChild(span);
+      });
+    }
+
+    function updateTypingProgress(userInput) {
+      const target = gameState.currentCaptcha;
+      let html = '';
+      
+      for (let i = 0; i < target.length; i++) {
+        const targetChar = target[i];
+        const userChar = userInput[i];
+        
+        let className = '';
+        if (i < userInput.length) {
+          className = userChar === targetChar ? 'char-correct' : 'char-incorrect';
+        } else if (i === userInput.length) {
+          className = 'char-current';
+        }
+        
+        html += `<span class="${className}">${targetChar}</span>`;
+      }
+      
+      elements.progressText.innerHTML = html;
+    }
+
+    function calculateWPM(startTime, charCount) {
+      if (!startTime) return 0;
+      const timeElapsed = (Date.now() - startTime) / 1000 / 60; // in minutes
+      const wordsTyped = charCount / 5; // standard: 5 chars = 1 word
+      return Math.round(wordsTyped / timeElapsed);
+    }
+
+    function calculateAccuracy(target, input) {
+      if (input.length === 0) return 100;
+      
+      let correct = 0;
+      const minLength = Math.min(target.length, input.length);
+      
+      for (let i = 0; i < minLength; i++) {
+        if (target[i] === input[i]) correct++;
+      }
+      
+      return Math.round((correct / input.length) * 100);
+    }
+
+    function onTypingInput() {
+      const input = elements.typingInput.value;
+      const target = gameState.currentCaptcha;
+      
+      // Start timing on first keystroke
+      if (!typingStartTime && input.length > 0) {
+        typingStartTime = Date.now();
+      }
+      
+      // Update progress visualization
+      updateTypingProgress(input);
+      
+      // Calculate real-time stats
+      if (typingStartTime && input.length > 0) {
+        const wpm = calculateWPM(typingStartTime, input.length);
+        const accuracy = calculateAccuracy(target, input);
+        const errors = input.split('').filter((char, i) => char !== target[i]).length;
+        
+        elements.liveWPM.textContent = wpm;
+        elements.liveAccuracy.textContent = accuracy + '%';
+        elements.liveErrors.textContent = errors;
+        
+        // Update best WPM
+        if (wpm > gameState.bestWPM) {
+          gameState.bestWPM = wpm;
+          elements.bestWPM.textContent = wpm;
+        }
+      }
+      
+      // Auto-submit when complete and correct
+      if (input === target) {
+        setTimeout(() => submitCaptcha(), 100);
+      }
+      
+      // Enable/disable submit button
+      elements.submitBtn.disabled = input.length === 0;
+    }
+
+    function submitCaptcha() {
+      if (!gameState.isGameActive) return;
+
+      const input = elements.typingInput.value;
+      const target = gameState.currentCaptcha;
+      
+      if (input === target) {
+        correctCaptcha();
+      } else {
+        wrongCaptcha();
+      }
+    }
+
+    function correctCaptcha() {
+      const input = elements.typingInput.value;
+      const timeTaken = typingStartTime ? (Date.now() - typingStartTime) / 1000 : 1;
+      const wpm = calculateWPM(typingStartTime, input.length);
+      const accuracy = calculateAccuracy(gameState.currentCaptcha, input);
+      
+      // Calculate damage based on performance (generous for basic level)
+      let baseDamage = 8; // Lower base damage
+      let wpmBonus = Math.floor(wpm / 15) * 3; // Bonus every 15 WPM
+      let accuracyBonus = accuracy >= 100 ? 7 : accuracy >= 95 ? 4 : accuracy >= 90 ? 2 : 0;
+      let speedBonus = timeTaken < 15 ? 5 : timeTaken < 25 ? 3 : 0;
+      
+      let totalDamage = baseDamage + wpmBonus + accuracyBonus + speedBonus;
+
+      // Update game state
+      gameState.health -= totalDamage;
+      gameState.score += totalDamage * 10;
+      gameState.successfulHits++;
+      gameState.totalAccuracy.push(accuracy);
+      gameState.totalTypedChars += input.length;
+
+      // Visual effects
+      showDamagePopup(totalDamage);
+      createParticles();
+      elements.bossface.classList.add('damaged');
+      setTimeout(() => elements.bossface.classList.remove('damaged'), 500);
+
+      updateHealthBar();
+      updateUI();
+
+      // Check win condition
+      if (gameState.health <= 0) {
+        victory();
+      } else {
+        // Positive feedback
+        showTaunt(`Hit for ${totalDamage} damage! ${wpm} WPM, ${accuracy}% accuracy!`);
+        generateCaptcha();
+      }
+    }
+
+    function wrongCaptcha() {
+      const input = elements.typingInput.value;
+      const accuracy = calculateAccuracy(gameState.currentCaptcha, input);
+      
+      gameState.score = Math.max(0, gameState.score - 20); // Smaller penalty for basic level
+      gameState.totalErrors++;
+      
+      elements.bossface.classList.add('angry');
+      setTimeout(() => elements.bossface.classList.remove('angry'), 500);
+      
+      updateUI();
+      showTaunt(`Miss! Only ${accuracy}% accuracy! Try again!`);
+      
+      // Let them try the same CAPTCHA again
+      elements.typingInput.value = '';
+      updateTypingProgress('');
+      elements.typingInput.focus();
+    }
+
+    function startTimers() {
+      tauntTimer = setInterval(randomTaunt, 6000); // Less frequent taunts
+      gameTimeTimer = setInterval(updateGameTime, 1000);
+      startCountdown();
+    }
+
+    function startCountdown() {
+      if (countdownTimer) clearInterval(countdownTimer);
+      
+      countdownTimer = setInterval(() => {
+        if (gameState.isGameActive) {
+          gameState.timeLeft--;
+          updateTimerBar();
+          elements.timerText.textContent = `Time: ${gameState.timeLeft}s`;
+          
+          if (gameState.timeLeft <= 0) {
+            timeExpired();
+          }
+        }
+      }, 1000);
+    }
+
+    function timeExpired() {
+      // For basic level, just generate new CAPTCHA instead of immediate game over
+      showTaunt("Time's up! Here's a new CAPTCHA!");
+      generateCaptcha();
+    }
+
+    function updateTimerBar() {
+      const percentage = (gameState.timeLeft / 45) * 100;
+      elements.timerFill.style.width = `${percentage}%`;
+    }
+
+    function updateGameTime() {
+      gameState.gameTime++;
+      const minutes = Math.floor(gameState.gameTime / 60);
+      const seconds = gameState.gameTime % 60;
+      elements.gameTime.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    function updateHealthBar() {
+      elements.healthBar.style.width = `${Math.max(0, gameState.health)}%`;
+      elements.healthText.textContent = `${Math.max(0, gameState.health)}%`;
+    }
+
+    function updateUI() {
+      elements.score.textContent = gameState.score;
+      elements.hits.textContent = gameState.successfulHits;
+      elements.currentWPM.textContent = gameState.bestWPM;
+      
+      const avgAccuracy = gameState.totalAccuracy.length > 0 
+        ? Math.round(gameState.totalAccuracy.reduce((a, b) => a + b, 0) / gameState.totalAccuracy.length)
+        : 100;
+      elements.currentAccuracy.textContent = avgAccuracy + '%';
+      elements.bestWPM.textContent = gameState.bestWPM;
+    }
+
+    function clickBoss() {
+      if (!gameState.isGameActive) return;
+      elements.bossface.style.transform = 'scale(0.95)';
+      setTimeout(() => {
+        elements.bossface.style.transform = '';
+      }, 100);
+      showTaunt("Don't click me! Focus on typing!");
+    }
+
+    function showDamagePopup(damage) {
+      const popup = document.createElement('div');
+      popup.className = 'damage-popup';
+      popup.textContent = `-${damage}`;
+      popup.style.left = Math.random() * 200 + 'px';
+      popup.style.top = '100px';
+      elements.bossface.parentElement.appendChild(popup);
+      
+      setTimeout(() => popup.remove(), 1000);
+    }
+
+    function createParticles() {
+      const container = document.getElementById('particles');
+      for (let i = 0; i < 15; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * window.innerWidth + 'px';
+        particle.style.top = Math.random() * window.innerHeight + 'px';
+        particle.style.animationDelay = Math.random() * 0.5 + 's';
+        container.appendChild(particle);
+        
+        setTimeout(() => particle.remove(), 2000);
+      }
+    }
+
+    function randomTaunt() {
+      if (!gameState.isGameActive) return;
+      const taunt = taunts[Math.floor(Math.random() * taunts.length)];
+      showTaunt(`"${taunt}"`);
+    }
+
+    function showTaunt(text) {
+      elements.tauntEl.textContent = text;
+      elements.tauntEl.style.animation = 'none';
+      setTimeout(() => {
+        elements.tauntEl.style.animation = 'fadeInOut 0.5s ease-in-out';
+      }, 10);
+    }
+
+    function victory() {
+      gameState.isGameActive = false;
+      clearAllTimers();
+      
+      const finalTaunt = victoryTaunts[Math.floor(Math.random() * victoryTaunts.length)];
+      showTaunt(`"${finalTaunt}"`);
+      
+      setTimeout(() => {
+        const avgAccuracy = gameState.totalAccuracy.length > 0 
+          ? Math.round(gameState.totalAccuracy.reduce((a, b) => a + b, 0) / gameState.totalAccuracy.length)
+          : 100;
+        
+        elements.victory.classList.remove('hidden');
+        document.getElementById('victory-score').textContent = gameState.score;
+        document.getElementById('victory-best-wpm').textContent = gameState.bestWPM;
+        document.getElementById('victory-accuracy').textContent = avgAccuracy + '%';
+        document.getElementById('victory-hits').textContent = gameState.successfulHits;
+        
+        elements.typingInput.disabled = true;
+        elements.submitBtn.disabled = true;
+      }, 1000);
+    }
+
+    function gameOver(reason) {
+      gameState.isGameActive = false;
+      clearAllTimers();
+      
+      const avgAccuracy = gameState.totalAccuracy.length > 0 
+        ? Math.round(gameState.totalAccuracy.reduce((a, b) => a + b, 0) / gameState.totalAccuracy.length)
+        : 0;
+      
+      elements.gameOver.classList.remove('hidden');
+      document.getElementById('final-score').textContent = gameState.score;
+      document.getElementById('final-best-wpm').textContent = gameState.bestWPM;
+      document.getElementById('final-accuracy').textContent = avgAccuracy + '%';
+      document.getElementById('final-hits').textContent = gameState.successfulHits;
+      
+      elements.typingInput.disabled = true;
+      elements.submitBtn.disabled = true;
+      showTaunt(`"${reason} Your typing skills need improvement!"`);
+    }
+
+    function clearAllTimers() {
+      if (countdownTimer) clearInterval(countdownTimer);
+      if (tauntTimer) clearInterval(tauntTimer);
+      if (gameTimeTimer) clearInterval(gameTimeTimer);
+    }
+
+    function restartGame() {
+      clearAllTimers();
+      initGame();
+    }
+
+    function handleKeyPress(event) {
+      if (event.key === 'Enter' && gameState.isGameActive && elements.typingInput.value.length > 0) {
+        submitCaptcha();
+      }
+    }
+
+    // Event listeners
+    elements.typingInput.addEventListener('input', onTypingInput);
+    elements.typingInput.addEventListener('keypress', handleKeyPress);
+
+    // Initialize game when page loads
+    window.addEventListener('load', initGame);
+  </script>
+</body>
+</html>
