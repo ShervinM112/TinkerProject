@@ -60,7 +60,7 @@ tinker.html
 # Screenshots 
 A snapshot of the main boss screen with stats and CAPTCHA prompt.
 ![Alt Text](https://github.com/ShervinM112/TinkerProject/blob/main/Screenshot%202025-08-02%20130559.png)
-![Alt Text](relative/path/to/Screenshot 2025-08-02 130718.png)
+![Alt Text](https://github.com/ShervinM112/TinkerProject/blob/main/Screenshot%202025-08-02%20130718.png)
 
 Displays WPM, Accuracy, and performance during gameplay.
 
