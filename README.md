@@ -57,9 +57,10 @@ tinker.html
 # Simply open the file in a web browser.
 
 
-# Screenshots (Add at least 3)
+# Screenshots 
 A snapshot of the main boss screen with stats and CAPTCHA prompt.
-
+![Alt Text](relative/path/to/Screenshot 2025-08-02 130559.png)
+![Alt Text](relative/path/to/Screenshot 2025-08-02 130718.png)
 
 Displays WPM, Accuracy, and performance during gameplay.
 
