@@ -1,73 +1,76 @@
 <img width="3188" height="1202" alt="frame (3)" src="https://github.com/user-attachments/assets/517ad8e9-ad22-457d-9538-a9e62d137cd7" />
 
 
-# [Project Name] 🎯
+# 🤖 CAPTCHA Boss Fight
 
 
 ## Basic Details
-### Team Name: [Name]
+### Team Name: GGEZ
 
 
 ### Team Members
-- Team Lead: [Name] - [College]
-- Member 2: [Name] - [College]
-- Member 3: [Name] - [College]
+- Team Lead: Immanuel Shervin Mendez - Albertian Institute Of Science And Technology
+- Member 2: Cecil Roy - Albertian Institute Of Science And Technology
 
-### Project Description
-[2-3 lines about what your project does]
 
-### The Problem (that doesn't exist)
-[What ridiculous problem are you solving?]
 
-### The Solution (that nobody asked for)
-[How are you solving it? Keep it fun!]
+### Project Description  
+An absurdly intense typing game where you fight a sassy robot boss by defeating CAPTCHAs with sheer speed and accuracy. It’s like a typing test... if the fate of the digital world depended on it.
 
-## Technical Details
+---
+
+### The Problem (that doesn't exist)  
+Robots are taking over the internet because humans can’t type CAPTCHAs fast enough. It’s chaos. Someone had to do something.
+
+---
+
+### The Solution (that nobody asked for)  
+We built an epic boss battle game where your weapon is your keyboard. Type CAPTCHAs at blazing speed, crush the robot overlord, and save humanity (or at least feel productive).
+
+---
+
+## 💻 Technical Details
+
 ### Technologies/Components Used
-For Software:
-- [Languages used]
-- [Frameworks used]
-- [Libraries used]
-- [Tools used]
 
-For Hardware:
-- [List main components]
-- [List specifications]
-- [List tools required]
+#### For Software:
+- **Languages:** HTML, CSS, JavaScript  
+- **Frameworks:** None (vanilla power!)  
+- **Libraries:** None  
+- **Tools:** Your mighty browser, a keyboard, and caffeine
 
-### Implementation
-For Software:
-# Installation
-[commands]
+#### For Hardware:
+- A standard keyboard (mechanical preferred for critical strikes)
+- Display device (ideally one that shows fonts)
+- Fingers (with decent WPM)
+- Imagination
 
-# Run
-[commands]
+---
 
-### Project Documentation
-For Software:
+## 🛠️ Implementation
+
+### Installation (for Software)
+# Just open the file:
+tinker.html
+
+# No installation required.
+# Simply open the file in a web browser.
+
 
 # Screenshots (Add at least 3)
-![Screenshot1](Add screenshot 1 here with proper name)
-*Add caption explaining what this shows*
+A snapshot of the main boss screen with stats and CAPTCHA prompt.
 
-![Screenshot2](Add screenshot 2 here with proper name)
-*Add caption explaining what this shows*
 
-![Screenshot3](Add screenshot 3 here with proper name)
-*Add caption explaining what this shows*
+Displays WPM, Accuracy, and performance during gameplay.
+
+
+You're the hero now. Enjoy your digital triumph.
+
 
 # Diagrams
 ![Workflow](Add your workflow/architecture diagram here)
 *Add caption explaining your workflow*
 
-For Hardware:
-
-# Schematic & Circuit
-![Circuit](Add your circuit diagram here)
-*Add caption explaining connections*
-
-![Schematic](Add your schematic diagram here)
-*Add caption explaining the schematic*
 
 # Build Photos
 ![Components](Add photo of your components here)
